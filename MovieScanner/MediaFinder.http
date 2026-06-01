@@ -1,0 +1,7 @@
+@MediaFinder_HostAddress = http://localhost:5174
+
+GET {{MediaFinder_HostAddress}}/api/movies/trending?language=fr-FR
+Accept: application/json
+
+GET {{MediaFinder_HostAddress}}/api/movies/trending?language=en-US
+Accept: application/json

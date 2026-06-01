@@ -1,0 +1,25 @@
+﻿using MediaFinder.Services;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+
+namespace MediaFinder.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class MoviesController : ControllerBase
+    {
+        private readonly TmdbService _tmdbService;
+
+        public MoviesController(TmdbService tmdbService)
+        {
+            _tmdbService = tmdbService;
+        }
+
+        [HttpGet("trending")]
+        public async Task<IActionResult> GetTrendingMovies([FromQuery] string language = "fr-FR")
+        {
+            var movies = await _tmdbService.GetTrendingMoviesAsync(language);
+            return Ok(movies);
+        }
+    }
+}
