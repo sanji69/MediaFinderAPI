@@ -51,5 +51,29 @@ namespace MediaFinder.Services
                 })
                 .ToList();
         }
+
+        public async Task<List<TmdbTrendingSeriesDto>> GetTrendingSeriesAsync(string language = "fr-FR")
+        {
+            var response = await _httpClient.GetAsync($"trending/tv/week?language={language}");
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadAsStringAsync();
+
+            using var document = JsonDocument.Parse(json);
+            var results = document.RootElement.GetProperty("results");
+
+            return results.EnumerateArray().Select(series => new TmdbTrendingSeriesDto
+            {
+                Id = series.GetProperty("id").GetInt32(),
+                Name = series.GetProperty("name").GetString() ?? string.Empty,
+                OriginalName = series.GetProperty("original_name").GetString() ?? string.Empty,
+                Overview = series.GetProperty("overview").GetString() ?? string.Empty,
+                PosterPath = series.TryGetProperty("poster_path", out var poster) ? poster.GetString() : null,
+                BackdropPath = series.TryGetProperty("backdrop_path", out var backdrop) ? backdrop.GetString() : null,
+                FirstAirDate = series.TryGetProperty("first_air_date", out var firstAirDate) ? firstAirDate.GetString() : null,
+                VoteAverage = series.TryGetProperty("vote_average", out var vote) ? vote.GetDouble() : 0,
+                Popularity = series.TryGetProperty("popularity", out var popularity) ? popularity.GetDouble() : 0
+            }).ToList();
+        }
     }
 }
