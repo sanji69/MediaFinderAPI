@@ -20,5 +20,14 @@ namespace MediaFinder.Controllers
             var series = await _tmdbService.GetTrendingSeriesAsync(language);
             return Ok(series);
         }
+
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetSeriesById(
+        int id,
+        [FromQuery] string language = "fr-FR")
+        {
+            var series = await _tmdbService.GetSerieAsync(id, language);
+            return Ok(series);
+        }
     }
 }

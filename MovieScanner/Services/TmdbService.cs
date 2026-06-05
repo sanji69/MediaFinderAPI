@@ -101,5 +101,62 @@ namespace MediaFinder.Services
                 Genres = genres
             };
         }
+
+        public async Task<SeriesDetailDto> GetSerieAsync(int serieId, string language = "fr-FR")
+        {
+            var response = await _httpClient.GetAsync($"tv/{serieId}?language={language}");
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadAsStringAsync();
+
+            using var document = JsonDocument.Parse(json);
+            var series = document.RootElement;
+            var genres = series.GetProperty("genres").EnumerateArray().Select(genre => genre.GetProperty("name").GetString() ?? string.Empty).Where(name => !string.IsNullOrWhiteSpace(name)).ToList();
+
+            return new SeriesDetailDto
+            {
+                Id = series.GetProperty("id").GetInt32(),
+
+                Name = series.GetProperty("name").GetString() ?? string.Empty,
+
+                OriginalName =
+                    series.GetProperty("original_name").GetString() ?? string.Empty,
+
+                Overview =
+                    series.GetProperty("overview").GetString() ?? string.Empty,
+
+                PosterPath =
+                    series.TryGetProperty("poster_path", out var poster)
+                        ? poster.GetString()
+                        : null,
+
+                BackdropPath =
+                    series.TryGetProperty("backdrop_path", out var backdrop)
+                        ? backdrop.GetString()
+                        : null,
+
+                FirstAirDate =
+                    series.TryGetProperty("first_air_date", out var firstAirDate)
+                        ? firstAirDate.GetString()
+                        : null,
+
+                VoteAverage =
+                    series.TryGetProperty("vote_average", out var vote)
+                        ? vote.GetDouble()
+                        : 0,
+
+                NumberOfSeasons =
+                    series.TryGetProperty("number_of_seasons", out var seasons)
+                        ? seasons.GetInt32()
+                        : 0,
+
+                NumberOfEpisodes =
+                    series.TryGetProperty("number_of_episodes", out var episodes)
+                        ? episodes.GetInt32()
+                        : 0,
+
+                Genres = genres
+            };
+        }
     }
 }
