@@ -75,5 +75,31 @@ namespace MediaFinder.Services
                 Popularity = series.TryGetProperty("popularity", out var popularity) ? popularity.GetDouble() : 0
             }).ToList();
         }
+
+        public async Task<MovieDetailDto> GetMovieAsync(int movieId, string language = "fr-FR")
+        {
+            var response = await _httpClient.GetAsync($"movie/{movieId}?language={language}");
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadAsStringAsync();
+
+            using var document = JsonDocument.Parse(json);
+            var movie = document.RootElement;
+            var genres = movie.GetProperty("genres").EnumerateArray().Select(genre => genre.GetProperty("name").GetString() ?? string.Empty).Where(name => !string.IsNullOrWhiteSpace(name)).ToList();
+
+            return new MovieDetailDto
+            {
+                Id = movie.GetProperty("id").GetInt32(),
+                Title = movie.GetProperty("title").GetString() ?? string.Empty,
+                OriginalTitle = movie.GetProperty("original_title").GetString() ?? string.Empty,
+                Overview = movie.GetProperty("overview").GetString() ?? string.Empty,
+                PosterPath = movie.TryGetProperty("poster_path", out var poster) ? poster.GetString() : null,
+                BackdropPath = movie.TryGetProperty("backdrop_path", out var backdrop) ? backdrop.GetString() : null,
+                ReleaseDate = movie.TryGetProperty("release_date", out var releaseDate) ? releaseDate.GetString() : null,
+                VoteAverage = movie.TryGetProperty("vote_average", out var vote) ? vote.GetDouble() : 0,
+                Runtime = movie.TryGetProperty("runtime", out var runtime) ? runtime.GetInt32() : 0,
+                Genres = genres
+            };
+        }
     }
 }
