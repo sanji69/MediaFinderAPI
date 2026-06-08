@@ -12,6 +12,9 @@
         public double VoteAverage { get; set; }
         public int NumberOfSeasons { get; set; }
         public int NumberOfEpisodes { get; set; }
-        public List<string> Genres { get; set; } = new List<string>();
+        public List<GenreDto> Genres { get; set; } = []; 
+        public List<PersonDto> Creators { get; set; } = [];
+        public List<CastMemberDto> Cast { get; set; } = [];
+        public List<WatchProviderDto> WatchProviders { get; set; } = [];
     }
 }

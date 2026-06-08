@@ -11,6 +11,9 @@
         public string? ReleaseDate { get; set; }
         public double VoteAverage { get; set; }
         public int Runtime { get; set; }
-        public List<string> Genres { get; set; } = new List<string>();
+        public List<GenreDto> Genres { get; set; } = []; 
+        public List<PersonDto> Directors { get; set; } = [];
+        public List<CastMemberDto> Cast { get; set; } = [];
+        public List<WatchProviderDto> WatchProviders { get; set; } = [];
     }
 }

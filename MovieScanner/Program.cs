@@ -14,7 +14,9 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.Configure<TmdbOptions>(
     builder.Configuration.GetSection("Tmdb"));
-builder.Services.AddHttpClient<TmdbService>();
+builder.Services.AddHttpClient<TmdbService>(); 
+builder.Services.Configure<LocalizationOptions>(
+    builder.Configuration.GetSection("Localization"));
 
 builder.Services.AddCors(options =>
 {

@@ -15,16 +15,16 @@ namespace MediaFinder.Controllers
         }
 
         [HttpGet("trending")]
-        public async Task<IActionResult> GetTrendingMovies([FromQuery] string language = "fr-FR")
+        public async Task<IActionResult> GetTrendingMovies([FromQuery] string? language = null)
         {
             var movies = await _tmdbService.GetTrendingMoviesAsync(language);
             return Ok(movies);
         }
 
         [HttpGet("{id:int}")]
-        public async Task<IActionResult> GetMovieDetails(int id, [FromQuery] string language = "fr-FR")
+        public async Task<IActionResult> GetMovieDetails(int id, [FromQuery] string? language = null, [FromQuery] string? countryCode = null)
         {
-            var movie = await _tmdbService.GetMovieAsync(id, language);
+            var movie = await _tmdbService.GetMovieAsync(id, language, countryCode);
             return Ok(movie);
         }
     }
