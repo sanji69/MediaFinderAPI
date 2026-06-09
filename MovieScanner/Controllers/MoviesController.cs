@@ -1,4 +1,4 @@
-﻿using MediaFinder.Services;
+﻿using MediaFinder.Interface;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MediaFinder.Controllers
@@ -7,9 +7,9 @@ namespace MediaFinder.Controllers
     [ApiController]
     public class MoviesController : ControllerBase
     {
-        private readonly TmdbService _tmdbService;
+        private readonly ITmdbService _tmdbService;
 
-        public MoviesController(TmdbService tmdbService)
+        public MoviesController(ITmdbService tmdbService)
         {
             _tmdbService = tmdbService;
         }

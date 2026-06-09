@@ -1,5 +1,7 @@
+using MediaFinder.Interface;
 using MediaFinder.Options;
-using MediaFinder.Services;
+using MediaFinder.Services.Localization;
+using MediaFinder.Services.Tmdb;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,9 +16,12 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.Configure<TmdbOptions>(
     builder.Configuration.GetSection("Tmdb"));
-builder.Services.AddHttpClient<TmdbService>(); 
 builder.Services.Configure<LocalizationOptions>(
     builder.Configuration.GetSection("Localization"));
+
+builder.Services.AddScoped<ILocalizationService, LocalizationService>();
+builder.Services.AddHttpClient<ITmdbService, TmdbService>(); 
+builder.Services.AddHttpClient<ISearchService, SearchService>();
 
 builder.Services.AddCors(options =>
 {

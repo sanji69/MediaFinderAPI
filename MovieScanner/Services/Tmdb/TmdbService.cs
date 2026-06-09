@@ -1,39 +1,26 @@
 ﻿using MediaFinder.DTOs;
+using MediaFinder.Interface;
 using MediaFinder.Options;
 using Microsoft.Extensions.Options;
 using System.Net.Http.Headers;
 using System.Text.Json;
 
-namespace MediaFinder.Services
+namespace MediaFinder.Services.Tmdb
 {
-    public class TmdbService
+    public class TmdbService : ITmdbService
     {
         private readonly HttpClient _httpClient;
-        private readonly TmdbOptions _options; 
-        private readonly LocalizationOptions _localizationOptions;
+        private readonly TmdbOptions _options;
+        private readonly ILocalizationService _localizationService;
 
-        public TmdbService(HttpClient httpClient, IOptions<TmdbOptions> options, IOptions<LocalizationOptions> localizationOptions)
+        public TmdbService(HttpClient httpClient, IOptions<TmdbOptions> options, ILocalizationService localizationService)
         {
             _httpClient = httpClient;
             _options = options.Value;
             _httpClient.BaseAddress = new Uri(_options.BaseUrl);
             _httpClient.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", _options.BearerToken);
-            _localizationOptions = localizationOptions.Value;
-        }
-
-        private string ResolveLanguage(string? language)
-        {
-            return string.IsNullOrWhiteSpace(language)
-                ? _localizationOptions.Language
-                : language;
-        }
-
-        private string ResolveCountryCode(string? countryCode)
-        {
-            return string.IsNullOrWhiteSpace(countryCode)
-                ? _localizationOptions.CountryCode
-                : countryCode;
+            _localizationService = localizationService;
         }
 
         private static List<WatchProviderDto> ExtractWatchProviders(JsonElement media, string countryCode)
@@ -87,7 +74,7 @@ namespace MediaFinder.Services
 
         public async Task<List<TmdbTrendingMovieDto>> GetTrendingMoviesAsync(string? language = null)
         {
-            var resolvedLanguage = ResolveLanguage(language);
+            var resolvedLanguage = _localizationService.ResolveLanguage(language);
 
             var response = await _httpClient.GetAsync($"trending/movie/week?language={resolvedLanguage}");
             response.EnsureSuccessStatusCode();
@@ -121,7 +108,7 @@ namespace MediaFinder.Services
 
         public async Task<List<TmdbTrendingSeriesDto>> GetTrendingSeriesAsync(string? language = null)
         {
-            var resolvedLanguage = ResolveLanguage(language);
+            var resolvedLanguage = _localizationService.ResolveLanguage(language);
             var response = await _httpClient.GetAsync($"trending/tv/week?language={resolvedLanguage}");
             response.EnsureSuccessStatusCode();
 
@@ -146,8 +133,8 @@ namespace MediaFinder.Services
 
         public async Task<MovieDetailDto> GetMovieAsync(int movieId, string? language = null, string? countryCode = null)
         {
-            var resolvedLanguage = ResolveLanguage(language);
-            var resolvedCountryCode = ResolveCountryCode(countryCode);
+            var resolvedLanguage = _localizationService.ResolveLanguage(language);
+            var resolvedCountryCode = _localizationService.ResolveCountryCode(countryCode);
 
             var response = await _httpClient.GetAsync($"movie/{movieId}?language={resolvedLanguage}&append_to_response=credits,watch/providers");
             response.EnsureSuccessStatusCode();
@@ -221,8 +208,8 @@ namespace MediaFinder.Services
 
         public async Task<SeriesDetailDto> GetSerieAsync(int serieId, string? language = null, string? countryCode = null)
         {
-            var resolvedLanguage = ResolveLanguage(language);
-            var resolvedCountryCode = ResolveCountryCode(countryCode);
+            var resolvedLanguage = _localizationService.ResolveLanguage(language);
+            var resolvedCountryCode = _localizationService.ResolveCountryCode(countryCode);
             var response = await _httpClient.GetAsync($"tv/{serieId}?language={resolvedLanguage}&append_to_response=credits,watch/providers");
             response.EnsureSuccessStatusCode();
 
