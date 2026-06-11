@@ -1,5 +1,6 @@
 using MediaFinder.Interface;
 using MediaFinder.Options;
+using MediaFinder.Services.Ebay;
 using MediaFinder.Services.Localization;
 using MediaFinder.Services.Tmdb;
 
@@ -18,10 +19,14 @@ builder.Services.Configure<TmdbOptions>(
     builder.Configuration.GetSection("Tmdb"));
 builder.Services.Configure<LocalizationOptions>(
     builder.Configuration.GetSection("Localization"));
+builder.Services.Configure<EbayOptions>(
+    builder.Configuration.GetSection("Ebay"));
 
 builder.Services.AddScoped<ILocalizationService, LocalizationService>();
 builder.Services.AddHttpClient<ITmdbService, TmdbService>(); 
-builder.Services.AddHttpClient<ISearchService, SearchService>();
+builder.Services.AddHttpClient<ISearchService, SearchService>(); 
+builder.Services.AddHttpClient<IPhysicalOfferProvider, EbayOfferProvider>();
+builder.Services.AddHttpClient<IEbayAuthService, EbayAuthService>();
 
 builder.Services.AddCors(options =>
 {
