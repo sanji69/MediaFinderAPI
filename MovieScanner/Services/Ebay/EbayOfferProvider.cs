@@ -105,7 +105,7 @@ namespace MediaFinder.Services.Ebay
                 return $"{query.Title} intégrale DVD Blu-ray";
             }
 
-            return $"{query.Title} DVD Blu-ray";
+            return $"\"{query.Title}\" DVD Blu-ray";
         }
 
         private string? DetectFormat(string title)

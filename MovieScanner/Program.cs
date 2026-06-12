@@ -3,6 +3,8 @@ using MediaFinder.Options;
 using MediaFinder.Services.Ebay;
 using MediaFinder.Services.Localization;
 using MediaFinder.Services.Tmdb;
+using MediaFinder.Data;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +23,9 @@ builder.Services.Configure<LocalizationOptions>(
     builder.Configuration.GetSection("Localization"));
 builder.Services.Configure<EbayOptions>(
     builder.Configuration.GetSection("Ebay"));
+builder.Services.AddDbContext<MediaFinderDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<ILocalizationService, LocalizationService>();
 builder.Services.AddHttpClient<ITmdbService, TmdbService>(); 
