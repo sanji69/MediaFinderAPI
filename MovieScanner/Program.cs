@@ -5,10 +5,18 @@ using MediaFinder.Services.Localization;
 using MediaFinder.Services.Tmdb;
 using MediaFinder.Services.Auth;
 using MediaFinder.Services.Email;
+using MediaFinder.Services.Profile;
 using MediaFinder.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var jwtOptions = builder.Configuration
+    .GetSection("Jwt")
+    .Get<JwtOptions>();
 
 // Add services to the container.
 
@@ -18,6 +26,24 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+
+            ValidIssuer = jwtOptions!.Issuer,
+            ValidAudience = jwtOptions.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwtOptions.Secret))
+        };
+    });
 
 builder.Services.Configure<TmdbOptions>(
     builder.Configuration.GetSection("Tmdb"));
@@ -42,6 +68,7 @@ builder.Services.AddHttpClient<IPhysicalOfferProvider, EbayOfferProvider>();
 builder.Services.AddHttpClient<IEbayAuthService, EbayAuthService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IProfileService, ProfileService>();
 
 builder.Services.AddCors(options =>
 {
@@ -68,7 +95,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("VueDevClient");
 
+app.UseAuthentication();
 app.UseAuthorization();
+app.UseStaticFiles();
 
 app.MapControllers();
 
