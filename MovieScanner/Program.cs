@@ -3,6 +3,7 @@ using MediaFinder.Options;
 using MediaFinder.Services.Ebay;
 using MediaFinder.Services.Localization;
 using MediaFinder.Services.Tmdb;
+using MediaFinder.Services.Auth;
 using MediaFinder.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,12 +27,18 @@ builder.Services.Configure<EbayOptions>(
 builder.Services.AddDbContext<MediaFinderDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.Configure<JwtOptions>(
+    builder.Configuration.GetSection("Jwt"));
+
+builder.Services.Configure<FrontendOptions>(
+    builder.Configuration.GetSection("Frontend"));
 
 builder.Services.AddScoped<ILocalizationService, LocalizationService>();
 builder.Services.AddHttpClient<ITmdbService, TmdbService>(); 
 builder.Services.AddHttpClient<ISearchService, SearchService>(); 
 builder.Services.AddHttpClient<IPhysicalOfferProvider, EbayOfferProvider>();
 builder.Services.AddHttpClient<IEbayAuthService, EbayAuthService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddCors(options =>
 {
