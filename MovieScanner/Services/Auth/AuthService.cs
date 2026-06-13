@@ -20,19 +20,22 @@ namespace MediaFinder.Services.Auth
         private readonly PasswordHasher<User> _passwordHasher;
         private readonly JwtOptions _jwtOptions;
         private readonly FrontendOptions _frontendOptions;
+        private readonly IEmailService _emailService;
 
         public AuthService(
             MediaFinderDbContext dbContext,
             IOptions<JwtOptions> jwtOptions,
-            IOptions<FrontendOptions> frontendOptions)
+            IOptions<FrontendOptions> frontendOptions,
+            IEmailService emailService)
         {
             _dbContext = dbContext;
             _passwordHasher = new PasswordHasher<User>();
             _jwtOptions = jwtOptions.Value;
             _frontendOptions = frontendOptions.Value;
+            _emailService = emailService;
         }
 
-        public async Task RegisterAsync(RegisterRequestDto request)
+        public async Task RegisterAsync(RegisterRequestDto request, string? language = null)
         {
             var email = request.Email.Trim().ToLowerInvariant();
             var username = request.Username.Trim();
@@ -69,9 +72,10 @@ namespace MediaFinder.Services.Auth
             var confirmationUrl =
                 $"{_frontendOptions.BaseUrl}/confirm-email?token={user.EmailConfirmationToken}";
 
-            Console.WriteLine($"Confirmation email URL: {confirmationUrl}");
-
-            // Plus tard : envoi réel via EmailService/Mailpit
+            await _emailService.SendEmailConfirmationAsync(
+                user.Email,
+                confirmationUrl,
+                language);
         }
 
         public async Task<AuthResponseDto> LoginAsync(LoginRequestDto request)

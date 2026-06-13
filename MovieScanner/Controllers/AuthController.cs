@@ -16,9 +16,9 @@ namespace MediaFinder.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register(RegisterRequestDto request)
+        public async Task<IActionResult> Register(RegisterRequestDto request, [FromQuery] string? language = null)
         {
-            await _authService.RegisterAsync(request);
+            await _authService.RegisterAsync(request, language);
 
             return Ok(new
             {
