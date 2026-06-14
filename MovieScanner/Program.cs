@@ -1,16 +1,18 @@
+using MediaFinder.Data;
 using MediaFinder.Interface;
 using MediaFinder.Options;
-using MediaFinder.Services.Ebay;
-using MediaFinder.Services.Localization;
-using MediaFinder.Services.Tmdb;
 using MediaFinder.Services.Auth;
+using MediaFinder.Services.Ebay;
 using MediaFinder.Services.Email;
+using MediaFinder.Services.Favorites;
+using MediaFinder.Services.Localization;
 using MediaFinder.Services.Profile;
-using MediaFinder.Data;
-using Microsoft.EntityFrameworkCore;
-using System.Text;
+using MediaFinder.Services.Ratings;
+using MediaFinder.Services.Tmdb;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,10 +23,8 @@ var jwtOptions = builder.Configuration
 // Add services to the container.
 
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
 
-builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddEndpointsApiExplorer(); 
 builder.Services.AddSwaggerGen();
 
 builder.Services
@@ -69,6 +69,8 @@ builder.Services.AddHttpClient<IEbayAuthService, EbayAuthService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddScoped<IRatingService, RatingService>();
+builder.Services.AddScoped<IFavoriteService, FavoriteService>();
 
 builder.Services.AddCors(options =>
 {
@@ -85,8 +87,6 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
-
     app.UseSwagger();
     app.UseSwaggerUI();
 }
