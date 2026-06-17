@@ -12,6 +12,7 @@ namespace MediaFinder.Data
         public DbSet<Rating> Ratings => Set<Rating>();
         public DbSet<Comment> Comments => Set<Comment>();
         public DbSet<Favorite> Favorites => Set<Favorite>();
+        public DbSet<CommentReport> CommentReports { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -19,8 +20,9 @@ namespace MediaFinder.Data
 
             ConfigureUsers(modelBuilder);
             ConfigureRatings(modelBuilder);
-            ConfigureComments(modelBuilder);
             ConfigureFavorites(modelBuilder);
+            ConfigureComments(modelBuilder);
+            ConfigureCommentReports(modelBuilder);
         }
 
         private static void ConfigureUsers(ModelBuilder modelBuilder)
@@ -101,27 +103,6 @@ namespace MediaFinder.Data
             });
         }
 
-        private static void ConfigureComments(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<Comment>(entity =>
-            {
-                entity.HasKey(x => x.Id);
-
-                entity.Property(x => x.MediaType)
-                    .IsRequired()
-                    .HasMaxLength(20);
-
-                entity.Property(x => x.Content)
-                    .IsRequired()
-                    .HasMaxLength(2000);
-
-                entity.HasOne(x => x.User)
-                    .WithMany(x => x.Comments)
-                    .HasForeignKey(x => x.UserId)
-                    .OnDelete(DeleteBehavior.Restrict);
-            });
-        }
-
         private static void ConfigureFavorites(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Favorite>(entity =>
@@ -148,5 +129,107 @@ namespace MediaFinder.Data
                     .OnDelete(DeleteBehavior.Restrict);
             });
         }
+
+        private static void ConfigureComments(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Comment>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+
+                entity.Property(x => x.MediaType)
+                    .IsRequired()
+                    .HasMaxLength(20);
+
+                entity.Property(x => x.MediaTitle)
+                    .IsRequired()
+                    .HasMaxLength(255);
+
+                entity.Property(x => x.MediaPosterPath)
+                    .HasMaxLength(500);
+
+                entity.Property(x => x.Content)
+                    .IsRequired()
+                    .HasMaxLength(2000);
+
+                entity.Property(x => x.Status)
+                    .IsRequired()
+                    .HasConversion<int>()
+                    .HasDefaultValue(CommentStatus.Visible);
+
+                entity.Property(x => x.CreatedAt)
+                    .IsRequired();
+
+                entity.Property(x => x.UpdatedAt)
+                    .IsRequired();
+
+                entity.Property(x => x.DeletedAt)
+                    .IsRequired(false);
+
+                entity.Property(x => x.HiddenAt)
+                    .IsRequired(false);
+
+                entity.Property(x => x.ModeratedByUserId)
+                    .IsRequired(false);
+
+                entity.HasOne(x => x.User)
+                    .WithMany(x => x.Comments)
+                    .HasForeignKey(x => x.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasMany(x => x.Reports)
+                    .WithOne(x => x.Comment)
+                    .HasForeignKey(x => x.CommentId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(x => new { x.MediaType, x.MediaId });
+
+                entity.HasIndex(x => x.UserId);
+
+                entity.HasIndex(x => x.Status);
+            });
+        }
+        private static void ConfigureCommentReports(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<CommentReport>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+
+                entity.Property(x => x.Reason)
+                    .IsRequired()
+                    .HasMaxLength(1000);
+
+                entity.Property(x => x.Status)
+                    .IsRequired()
+                    .HasConversion<int>()
+                    .HasDefaultValue(ReportStatus.Pending);
+
+                entity.Property(x => x.CreatedAt)
+                    .IsRequired();
+
+                entity.Property(x => x.ReviewedAt)
+                    .IsRequired(false);
+
+                entity.Property(x => x.ReviewedByUserId)
+                    .IsRequired(false);
+
+                entity.HasOne(x => x.Comment)
+                    .WithMany(x => x.Reports)
+                    .HasForeignKey(x => x.CommentId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(x => x.ReporterUser)
+                    .WithMany()
+                    .HasForeignKey(x => x.ReporterUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasIndex(x => new { x.CommentId, x.ReporterUserId })
+                    .IsUnique();
+
+                entity.HasIndex(x => x.Status);
+
+                entity.HasIndex(x => x.CreatedAt);
+            });
+        }
+
     }
 }

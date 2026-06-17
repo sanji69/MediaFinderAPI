@@ -2,6 +2,7 @@ using MediaFinder.Data;
 using MediaFinder.Interface;
 using MediaFinder.Options;
 using MediaFinder.Services.Auth;
+using MediaFinder.Services.Comments;
 using MediaFinder.Services.Ebay;
 using MediaFinder.Services.Email;
 using MediaFinder.Services.Favorites;
@@ -71,6 +72,7 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IRatingService, RatingService>();
 builder.Services.AddScoped<IFavoriteService, FavoriteService>();
+builder.Services.AddScoped<ICommentService, CommentService>();
 
 builder.Services.AddCors(options =>
 {
