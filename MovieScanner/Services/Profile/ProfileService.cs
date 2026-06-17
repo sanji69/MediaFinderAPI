@@ -1,4 +1,5 @@
 ﻿using MediaFinder.Data;
+using MediaFinder.Enums;
 using MediaFinder.DTOs.Auth;
 using MediaFinder.Interface;
 using Microsoft.EntityFrameworkCore;
@@ -29,7 +30,7 @@ namespace MediaFinder.Services.Profile
         public async Task<UserProfileDto> GetCurrentUserAsync(Guid userId)
         {
             var user = await _dbContext.Users
-                .FirstOrDefaultAsync(x => x.Id == userId && !x.IsDeleted);
+                .FirstOrDefaultAsync(x => x.Id == userId && x.AccountStatus != AccountStatus.Deleted);
 
             if (user == null)
                 throw new UnauthorizedAccessException("User not found.");
@@ -40,7 +41,7 @@ namespace MediaFinder.Services.Profile
         public async Task<UserProfileDto> UploadAvatarAsync(Guid userId, IFormFile file)
         {
             var user = await _dbContext.Users
-                .FirstOrDefaultAsync(x => x.Id == userId && !x.IsDeleted);
+                .FirstOrDefaultAsync(x => x.Id == userId && x.AccountStatus != AccountStatus.Deleted);
 
             if (user == null)
                 throw new UnauthorizedAccessException("User not found.");

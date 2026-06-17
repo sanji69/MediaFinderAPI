@@ -1,16 +1,17 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
-using MediaFinder.Data;
+﻿using MediaFinder.Data;
 using MediaFinder.DTOs.Auth;
 using MediaFinder.Entities;
+using MediaFinder.Enums;
 using MediaFinder.Interface;
 using MediaFinder.Options;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace MediaFinder.Services.Auth
 {
@@ -83,10 +84,16 @@ namespace MediaFinder.Services.Auth
             var email = request.Email.Trim().ToLowerInvariant();
 
             var user = await _dbContext.Users
-                .FirstOrDefaultAsync(x => x.Email == email && !x.IsDeleted);
-
+                .FirstOrDefaultAsync(x => x.Email == email && x.AccountStatus != AccountStatus.Deleted); 
+            
             if (user == null)
                 throw new UnauthorizedAccessException("Invalid credentials.");
+
+            if (user.AccountStatus == AccountStatus.Deleted)
+                throw new UnauthorizedAccessException("Account deleted.");
+
+            if (user.AccountStatus == AccountStatus.Banned)
+                throw new UnauthorizedAccessException("Account banned.");
 
             var result = _passwordHasher.VerifyHashedPassword(
                 user,
@@ -113,7 +120,7 @@ namespace MediaFinder.Services.Auth
             var user = await _dbContext.Users
                 .FirstOrDefaultAsync(x =>
                     x.EmailConfirmationToken == token
-                    && !x.IsDeleted);
+                    && x.AccountStatus != AccountStatus.Deleted);
 
             if (user == null)
                 throw new InvalidOperationException("Invalid confirmation token.");
@@ -129,13 +136,45 @@ namespace MediaFinder.Services.Auth
             await _dbContext.SaveChangesAsync();
         }
 
+        public async Task DeleteCurrentUserAsync(Guid userId)
+        {
+            var user = await _dbContext.Users
+                .FirstOrDefaultAsync(x => x.Id == userId);
+
+            if (user == null)
+                throw new InvalidOperationException("User not found.");
+
+            if (user.AccountStatus == AccountStatus.Deleted)
+                return;
+
+            _dbContext.Favorites.RemoveRange(user.Favorites);
+
+            var anonymizedValue = $"deleted-user-{user.Id:N}";
+
+            user.Username = anonymizedValue;
+            user.Email = $"{anonymizedValue}@deleted.local";
+            user.PasswordHash = string.Empty;
+            user.AvatarPath = null;
+
+            user.IsEmailConfirmed = false;
+            user.EmailConfirmationToken = null;
+            user.EmailConfirmationTokenExpiresAt = null;
+
+            user.AccountStatus = AccountStatus.Deleted;
+            user.DeletedAt = DateTime.UtcNow;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _dbContext.SaveChangesAsync();
+        }
+
         private string GenerateJwtToken(User user)
         {
             var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new(JwtRegisteredClaimNames.Email, user.Email),
-            new("username", user.Username)
+            new("username", user.Username),
+            new(ClaimTypes.Role, user.Role.ToString())
         };
 
             var key = new SymmetricSecurityKey(
@@ -168,7 +207,10 @@ namespace MediaFinder.Services.Auth
                 Username = user.Username,
                 Email = user.Email,
                 AvatarPath = user.AvatarPath,
-                IsEmailConfirmed = user.IsEmailConfirmed
+                IsEmailConfirmed = user.IsEmailConfirmed,
+                WarningCount = user.WarningCount,
+                AccountStatus = user.AccountStatus,
+                Role = user.Role
             };
         }
     }

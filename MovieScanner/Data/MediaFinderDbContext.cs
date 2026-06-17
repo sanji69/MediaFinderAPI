@@ -1,4 +1,5 @@
 ﻿using MediaFinder.Entities;
+using MediaFinder.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace MediaFinder.Data
@@ -45,6 +46,29 @@ namespace MediaFinder.Data
 
                 entity.Property(x => x.EmailConfirmationToken)
                     .HasMaxLength(200);
+
+                entity.Property(x => x.WarningCount)
+                    .IsRequired()
+                    .HasDefaultValue((short)0);
+
+                entity.Property(x => x.AccountStatus)
+                    .IsRequired()
+                    .HasConversion<int>()
+                    .HasDefaultValue(AccountStatus.Active);
+
+                entity.Property(x => x.Role)
+                    .IsRequired()
+                    .HasConversion<int>()
+                    .HasDefaultValue(UserRole.User);
+
+                entity.Property(x => x.CreatedAt)
+                    .IsRequired();
+
+                entity.Property(x => x.UpdatedAt)
+                    .IsRequired();
+
+                entity.Property(x => x.DeletedAt)
+                    .IsRequired(false);
 
                 entity.HasIndex(x => x.Username)
                     .IsUnique();

@@ -1,4 +1,6 @@
-﻿namespace MediaFinder.Entities
+﻿using MediaFinder.Enums;
+
+namespace MediaFinder.Entities
 {
     public class Comment
     {
@@ -10,5 +12,10 @@
         public string Content { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+        public CommentStatus Status { get; set; } = CommentStatus.Visible;
+        public DateTime? DeletedAt { get; set; }
+        public DateTime? HiddenAt { get; set; }
+        public Guid? ModeratedByUserId { get; set; }
+        public ICollection<CommentReport> Reports { get; set; } = new List<CommentReport>();
     }
 }

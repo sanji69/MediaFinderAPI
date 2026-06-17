@@ -1,6 +1,9 @@
 ﻿using MediaFinder.DTOs.Auth;
 using MediaFinder.Interface;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace MediaFinder.Controllers
 {
@@ -43,6 +46,21 @@ namespace MediaFinder.Controllers
             {
                 message = "Email confirmed."
             });
+        }
+
+        [Authorize]
+        [HttpDelete("me")]
+        public async Task<IActionResult> DeleteMe()
+        {
+            var userIdValue = User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+                ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!Guid.TryParse(userIdValue, out var userId))
+                return Unauthorized();
+
+            await _authService.DeleteCurrentUserAsync(userId);
+
+            return NoContent();
         }
     }
 }

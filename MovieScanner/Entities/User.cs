@@ -1,4 +1,6 @@
-﻿namespace MediaFinder.Entities
+﻿using MediaFinder.Enums;
+
+namespace MediaFinder.Entities
 {
     public class User
     {
@@ -10,7 +12,9 @@
         public bool IsEmailConfirmed { get; set; }
         public string? EmailConfirmationToken { get; set; }
         public DateTime? EmailConfirmationTokenExpiresAt { get; set; }
-        public bool IsDeleted { get; set; }
+        public short WarningCount { get; set; }
+        public AccountStatus AccountStatus { get; set; } = AccountStatus.Active;
+        public UserRole Role { get; set; } = UserRole.User;
         public DateTime? DeletedAt { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
