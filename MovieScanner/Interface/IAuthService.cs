@@ -8,5 +8,7 @@ namespace MediaFinder.Interface
         Task<AuthResponseDto> LoginAsync(LoginRequestDto request);
         Task ConfirmEmailAsync(string token);
         Task DeleteCurrentUserAsync(Guid userId);
+        Task ForgotPasswordAsync(ForgotPasswordRequestDto request, string? language = null);
+        Task ResetPasswordAsync(ResetPasswordRequestDto request);
     }
 }

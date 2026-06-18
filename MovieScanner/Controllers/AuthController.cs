@@ -21,31 +21,61 @@ namespace MediaFinder.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterRequestDto request, [FromQuery] string? language = null)
         {
-            await _authService.RegisterAsync(request, language);
-
-            return Ok(new
+            try
             {
-                message = "Account created. Please confirm your email."
-            });
+                await _authService.RegisterAsync(request, language);
+
+                return Ok(new
+                {
+                    message = "Account created. Please confirm your email."
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new
+                {
+                    code = ex.Message
+                });
+            }
         }
 
         [HttpPost("login")]
         public async Task<ActionResult<AuthResponseDto>> Login(LoginRequestDto request)
         {
-            var result = await _authService.LoginAsync(request);
+            try
+            {
+                var result = await _authService.LoginAsync(request);
 
-            return Ok(result);
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new
+                {
+                    code = ex.Message
+                });
+            }
         }
 
         [HttpGet("confirm-email")]
         public async Task<IActionResult> ConfirmEmail([FromQuery] string token)
         {
-            await _authService.ConfirmEmailAsync(token);
-
-            return Ok(new
+            try
             {
-                message = "Email confirmed."
-            });
+                await _authService.ConfirmEmailAsync(token);
+
+                return Ok(new
+                {
+                    message = "Email confirmed."
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new
+                {
+                    code = ex.Message
+                });
+            }
         }
 
         [Authorize]
@@ -61,6 +91,38 @@ namespace MediaFinder.Controllers
             await _authService.DeleteCurrentUserAsync(userId);
 
             return NoContent();
+        }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordRequestDto request, [FromQuery] string? language = null)
+        {
+            await _authService.ForgotPasswordAsync(request, language);
+
+            return Ok(new
+            {
+                message = "If the email exists, a reset link has been sent."
+            });
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordRequestDto request)
+        {
+            try
+            {
+                await _authService.ResetPasswordAsync(request);
+
+                return Ok(new
+                {
+                    message = "Password has been reset."
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new
+                {
+                    code = ex.Message
+                });
+            }
         }
     }
 }

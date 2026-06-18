@@ -15,6 +15,8 @@ namespace MediaFinder.Entities
         public short WarningCount { get; set; }
         public AccountStatus AccountStatus { get; set; } = AccountStatus.Active;
         public UserRole Role { get; set; } = UserRole.User;
+        public string? PasswordResetToken { get; set; }
+        public DateTime? PasswordResetTokenExpiresAt { get; set; }
         public DateTime? DeletedAt { get; set; }
         public DateTime? BannedAt { get; set; }
         public DateTime CreatedAt { get; set; }

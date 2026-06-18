@@ -181,3 +181,14 @@ VALUES (N'20260618115042_AdminRoleAndUserStatusUpdateFix', N'10.0.9');
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+ALTER TABLE [Users] ADD [PasswordResetToken] nvarchar(200) NULL;
+
+ALTER TABLE [Users] ADD [PasswordResetTokenExpiresAt] datetime2 NULL;
+
+INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+VALUES (N'20260618135852_AddPasswordResetToken', N'10.0.9');
+
+COMMIT;
+GO
+

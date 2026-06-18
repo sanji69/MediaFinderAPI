@@ -66,5 +66,57 @@ namespace MediaFinder.Services.Email
 
             await client.SendMailAsync(message);
         }
+        public async Task SendPasswordResetAsync(string toEmail, string resetUrl, string? language = null)
+        {
+            var resolvedLanguage = _localizationService.ResolveLanguage(language);
+
+            var isFrench = resolvedLanguage.StartsWith(
+                "fr",
+                StringComparison.OrdinalIgnoreCase);
+
+            var subject = isFrench
+                ? "Réinitialisation de votre mot de passe"
+                : "Reset your password";
+
+            var body = isFrench
+               ? $"""
+                  Bonjour,
+
+                  Vous avez demandé la réinitialisation de votre mot de passe.
+
+                  Cliquez sur le lien suivant pour choisir un nouveau mot de passe :
+                  {resetUrl}
+
+                  Ce lien expirera dans 1 heure.
+
+                  Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.
+                  """
+               : $"""
+                  Hello,
+
+                  You requested a password reset.
+
+                  Click the following link to choose a new password:
+                  {resetUrl}
+
+                  This link will expire in 1 hour.
+
+                  If you did not request this, you can ignore this email.
+                  """;
+
+            using var client = new SmtpClient(_options.Host, _options.Port);
+
+            using var message = new MailMessage
+            {
+                From = new MailAddress(_options.FromAddress, _options.FromName),
+                Subject = subject,
+                Body = body,
+                IsBodyHtml = false
+            };
+
+            message.To.Add(toEmail);
+
+            await client.SendMailAsync(message);
+        }
     }
 }

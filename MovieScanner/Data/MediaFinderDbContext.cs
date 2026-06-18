@@ -62,6 +62,11 @@ namespace MediaFinder.Data
                     .IsRequired()
                     .HasConversion<int>()
                     .HasDefaultValue(UserRole.User);
+                entity.Property(x => x.PasswordResetToken)
+                    .HasMaxLength(200);
+
+                entity.Property(x => x.PasswordResetTokenExpiresAt)
+                    .IsRequired(false);
 
                 entity.Property(x => x.CreatedAt)
                     .IsRequired();

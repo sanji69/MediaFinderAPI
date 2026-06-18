@@ -45,13 +45,13 @@ namespace MediaFinder.Services.Auth
                 .AnyAsync(x => x.Email == email);
 
             if (emailExists)
-                throw new InvalidOperationException("Email already exists.");
+                throw new InvalidOperationException("EMAIL_ALREADY_EXISTS");
 
             var usernameExists = await _dbContext.Users
                 .AnyAsync(x => x.Username == username);
 
             if (usernameExists)
-                throw new InvalidOperationException("Username already exists.");
+                throw new InvalidOperationException("USERNAME_ALREADY_EXISTS");
 
             var user = new User
             {
@@ -84,16 +84,16 @@ namespace MediaFinder.Services.Auth
             var email = request.Email.Trim().ToLowerInvariant();
 
             var user = await _dbContext.Users
-                .FirstOrDefaultAsync(x => x.Email == email && x.AccountStatus != AccountStatus.Deleted); 
-            
+                .FirstOrDefaultAsync(x => x.Email == email && x.AccountStatus != AccountStatus.Deleted);
+
             if (user == null)
-                throw new UnauthorizedAccessException("Invalid credentials.");
+                throw new UnauthorizedAccessException("INVALID_CREDENTIALS");
 
             if (user.AccountStatus == AccountStatus.Deleted)
-                throw new UnauthorizedAccessException("Account deleted.");
+                throw new UnauthorizedAccessException("ACCOUNT_DELETED");
 
             if (user.AccountStatus == AccountStatus.Banned)
-                throw new UnauthorizedAccessException("Account banned.");
+                throw new UnauthorizedAccessException("ACCOUNT_BANNED");
 
             var result = _passwordHasher.VerifyHashedPassword(
                 user,
@@ -101,10 +101,10 @@ namespace MediaFinder.Services.Auth
                 request.Password);
 
             if (result == PasswordVerificationResult.Failed)
-                throw new UnauthorizedAccessException("Invalid credentials.");
+                throw new UnauthorizedAccessException("INVALID_CREDENTIALS");
 
             if (!user.IsEmailConfirmed)
-                throw new UnauthorizedAccessException("Email is not confirmed.");
+                throw new UnauthorizedAccessException("EMAIL_NOT_CONFIRMED");
 
             var token = GenerateJwtToken(user);
 
@@ -123,10 +123,10 @@ namespace MediaFinder.Services.Auth
                     && x.AccountStatus != AccountStatus.Deleted);
 
             if (user == null)
-                throw new InvalidOperationException("Invalid confirmation token.");
+                throw new InvalidOperationException("INVALID_CONFIRMATION_TOKEN");
 
             if (user.EmailConfirmationTokenExpiresAt < DateTime.UtcNow)
-                throw new InvalidOperationException("Confirmation token expired.");
+                throw new InvalidOperationException("INVALID_CONFIRMATION_TOKEN");
 
             user.IsEmailConfirmed = true;
             user.EmailConfirmationToken = null;
@@ -162,6 +162,54 @@ namespace MediaFinder.Services.Auth
 
             user.AccountStatus = AccountStatus.Deleted;
             user.DeletedAt = DateTime.UtcNow;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task ForgotPasswordAsync(ForgotPasswordRequestDto request, string? language = null)
+        {
+            var email = request.Email.Trim().ToLowerInvariant();
+
+            var user = await _dbContext.Users
+                .FirstOrDefaultAsync(x =>
+                    x.Email == email &&
+                    x.AccountStatus == AccountStatus.Active);
+
+            if (user == null)
+                return;
+
+            user.PasswordResetToken = GenerateToken();
+            user.PasswordResetTokenExpiresAt = DateTime.UtcNow.AddHours(1);
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _dbContext.SaveChangesAsync();
+
+            var resetUrl =
+                $"{_frontendOptions.BaseUrl}/reset-password?token={user.PasswordResetToken}";
+
+            await _emailService.SendPasswordResetAsync(
+                user.Email,
+                resetUrl,
+                language);
+        }
+
+        public async Task ResetPasswordAsync(ResetPasswordRequestDto request)
+        {
+            var user = await _dbContext.Users
+                .FirstOrDefaultAsync(x =>
+                    x.PasswordResetToken == request.Token &&
+                    x.AccountStatus == AccountStatus.Active);
+
+            if (user == null)
+                throw new InvalidOperationException("INVALID_RESET_TOKEN");
+
+            if (user.PasswordResetTokenExpiresAt < DateTime.UtcNow)
+                throw new InvalidOperationException("RESET_TOKEN_EXPIRED");
+
+            user.PasswordHash = _passwordHasher.HashPassword(user, request.NewPassword);
+            user.PasswordResetToken = null;
+            user.PasswordResetTokenExpiresAt = null;
             user.UpdatedAt = DateTime.UtcNow;
 
             await _dbContext.SaveChangesAsync();
