@@ -165,3 +165,19 @@ VALUES (N'20260617172340_UpdateReportingBolean', N'10.0.9');
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+ALTER TABLE [Users] ADD [BannedAt] datetime2 NULL;
+
+INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+VALUES (N'20260618114931_AdminRoleAndUserStatusUpdate', N'10.0.9');
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+VALUES (N'20260618115042_AdminRoleAndUserStatusUpdateFix', N'10.0.9');
+
+COMMIT;
+GO
+

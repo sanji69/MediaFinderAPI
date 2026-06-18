@@ -69,6 +69,9 @@ namespace MediaFinder.Data
                 entity.Property(x => x.UpdatedAt)
                     .IsRequired();
 
+                entity.Property(x => x.BannedAt)
+                    .IsRequired(false);
+
                 entity.Property(x => x.DeletedAt)
                     .IsRequired(false);
 

@@ -16,6 +16,7 @@ namespace MediaFinder.Entities
         public AccountStatus AccountStatus { get; set; } = AccountStatus.Active;
         public UserRole Role { get; set; } = UserRole.User;
         public DateTime? DeletedAt { get; set; }
+        public DateTime? BannedAt { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public ICollection<Rating> Ratings { get; set; } = new List<Rating>();
