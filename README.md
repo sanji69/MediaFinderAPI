@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/branding/banner.png" alt="MediaFinder Banner" width="100%">
+    <img src="MovieScanner/docs/branding/banner.png" alt="MediaFinder Banner" width="100%">
 </p>
 
 <h1 align="center">MediaFinder API</h1>
